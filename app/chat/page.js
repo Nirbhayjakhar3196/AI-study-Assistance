@@ -25,23 +25,36 @@ export default function ChatPage() {
 
         setLoading(true)
 
-        const res = await fetch("/api/chat" , {
-            method: "POST",
+        try {
+            const res = await fetch("/api/chat" , {
+                method: "POST",
 
-            headers: {
-                "Content-Type" : "application/json",
-            },
+                headers: {
+                    "Content-Type" : "application/json",
+                },
 
-            body : JSON.stringify({
-                message:userMessage.text
+                body : JSON.stringify({
+                    message:userMessage.text
+                })
             })
-        })
 
-        const data = await res.json();
+            if(!res.ok){
+                throw new Error("Failed to get response from Gemini")
+            }
 
-        const aiMessage = {
-            role : "ai",
-            text : data.reply
+            const data = await res.json();
+
+            const aiMessage = {
+                role : "ai",
+                text : data.reply
+            }
+        } catch (error) {
+            console.error("Chat Error: " , error)
+            
+            const errorMessage = {
+                role: "ai",
+                text: "⚠ Sorry, I couldn't generate a response. Please try again."
+            }
         }
 
         setMessages((prevMessages) => [...prevMessages , aiMessage])
