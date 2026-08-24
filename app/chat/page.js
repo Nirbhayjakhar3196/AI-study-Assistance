@@ -8,6 +8,7 @@ export default function ChatPage() {
 
     const [message, setMessage] = useState("")
     const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(false)
 
     async function sendMessage(){
 
@@ -21,6 +22,8 @@ export default function ChatPage() {
         setMessages((prevMessages) => [...prevMessages,userMessage])
 
         setMessage("");
+
+        setLoading(true)
 
         const res = await fetch("/api/chat" , {
             method: "POST",
@@ -42,6 +45,8 @@ export default function ChatPage() {
         }
 
         setMessages((prevMessages) => [...prevMessages , aiMessage])
+
+        setLoading(false)
     }
 
     return (
@@ -70,6 +75,12 @@ export default function ChatPage() {
                         </div>
                     ))}
 
+                    {loading && (
+                        <div className="bg-gray-200 p-3 rounded-xl w-fit max-w-sm">
+                            😎Gemini is Thinking...
+                        </div>
+                    )}
+
                 </div>
             </section>
 
@@ -86,7 +97,7 @@ export default function ChatPage() {
                 <button 
                     onClick={sendMessage}
                     className="bg-black text-white px-5 rounded-lg">
-                    Send
+                    {loading ? "Thinking.." : 'Send'}
                 </button>
                 </div>
             </footer>
