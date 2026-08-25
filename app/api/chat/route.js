@@ -6,14 +6,32 @@ export async function POST(request){
     try {
         const body = await request.json();
 
-        const response = await ai.models.generateContent({
+        const response = await ai.models.generateContentStream({
             model: "gemini-2.5-flash",
             contents: body.message,
         });
 
-        return NextResponse.json({
-            reply : response.text
+        const  encoder = new TextEncoder();
+
+        const stream = new ReadableStream({
+            async start(controller){
+
+                for await(const chunk of response){
+                    controller.enqueue(
+                        encoder.encode(chunk.text)
+                    )
+                }
+
+                controller.close();
+            }
         })
+
+        return new Response(stream ,    {
+            headers : {
+                "Content-Type" : "text/plain; charset=utf-8"
+            }
+        })
+
     } catch (error) {
 
         console.log("Gemini Error:" , error);
