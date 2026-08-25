@@ -46,17 +46,38 @@ export default function ChatPage() {
                 throw new Error("Failed to get response from Gemini");
             }
 
-            const data = await res.json();
+            const reader = res.body.getReader();
 
             const aiMessage = {
                 role: "ai",
-                text: data.reply,
-            };
+                text: "",
+            }
 
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                aiMessage,
-            ]);
+            setMessages((prevMessages) => [...prevMessages , aiMessage]);
+
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+
+                setMessages((prevMessages) => {
+                    const updatedMessages = [...prevMessages];
+
+                    updatedMessages[updatedMessages.length - 1] = {
+                    ...updatedMessages[updatedMessages.length - 1],
+                    text:
+                        updatedMessages[updatedMessages.length - 1].text + chunk,
+                    };
+
+                    return updatedMessages;
+                })
+            }
+
+            setLoading(false)
 
         } catch (error) {
             console.error("Chat Error:", error);
