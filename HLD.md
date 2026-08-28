@@ -595,7 +595,7 @@ This project demonstrates understanding of:
 
 ---
 
-# 15. HLD Summary
+# 15. Summary
 
 The AI Study Assistant follows a modular three-layer architecture where the frontend handles presentation, Next.js API routes handle secure communication with Gemini, and Gemini streams responses using Web Streams API.
 

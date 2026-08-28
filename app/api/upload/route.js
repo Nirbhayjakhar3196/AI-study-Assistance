@@ -1,31 +1,34 @@
 import { NextResponse } from "next/server";
+import { extractPdfText } from "@/lib/pdfParser";
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
+    const pdfFile = formData.get("pdf");
 
-    const pdf = formData.get("pdf");
-
-    if (!pdf) {
+    if (!pdfFile) {
       return NextResponse.json(
-        { message: "No PDF uploaded." },
+        { message: "Please upload a PDF." },
         { status: 400 }
       );
     }
 
-    console.log("File Name:", pdf.name);
-    console.log("File Size:", pdf.size);
-    console.log("File Type:", pdf.type);
+    const extractedText = await extractPdfText(pdfFile);
 
     return NextResponse.json({
-      message: `${pdf.name} uploaded successfully.`,
+      message: "PDF parsed successfully!",
+      characters: extractedText.length,
+      preview: extractedText.slice(0, 300),
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("UPLOAD ERROR:", error);
 
     return NextResponse.json(
-      { message: "Upload failed." },
+      {
+        message: "Failed to parse PDF.",
+        error: error.message,
+      },
       { status: 500 }
     );
   }

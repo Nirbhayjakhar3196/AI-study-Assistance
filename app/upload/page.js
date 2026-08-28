@@ -20,29 +20,40 @@ export default function UploadPage() {
   }
 
   async function handleUpload() {
-    if (!selectedFile) return;
+  if (!selectedFile) {
+    alert("Please select a PDF first.");
+    return;
+  }
 
-    setUploading(true);
+  setUploading(true);
 
-    const formData = new FormData();
-    formData.append("pdf", selectedFile);
+  const formData = new FormData();
+  formData.append("pdf", selectedFile);
 
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+  try {
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      alert(data.message);
-    } catch (error) {
-      console.error(error);
-      alert("Upload failed.");
+    if (!response.ok) {
+      throw new Error(data.error || data.message);
     }
 
+    alert(data.message);
+
+    console.log("Characters:", data.characters);
+    console.log("Preview:", data.preview);
+
+  } catch (error) {
+    console.error("Frontend Error:", error);
+    alert(error.message);
+  } finally {
     setUploading(false);
   }
+}
 
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
