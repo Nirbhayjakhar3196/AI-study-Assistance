@@ -3,6 +3,9 @@ import { extractPdfText } from "@/lib/pdfParser";
 import { createChunks } from "../../../lib/chunkText";
 import { createEmbedding } from "../../../lib/embeddings";
 import {saveEmbeddings} from "../../../lib/vectorStore"
+import { findRelevantChunks } from "../../../lib/retrieval";
+import fs from "fs/promises";
+import path from "path"
 
 
 export async function POST(request) {
@@ -50,8 +53,39 @@ const chunks = createChunks(extractedText);
 
   const filePath = await saveEmbeddings(vectors);
 
-  console.log("Saved Vector Database");
-  console.log(filePath);
+  const databasePath = path.join(
+    process.cwd(),
+    "data",
+    "embeddings.json"
+  )
+
+  const savedVectors = JSON.parse(
+    await fs.readFile(databasePath, "utf-8")
+  )
+
+  const question = "Explain inheritance in OOP"
+
+  const questionEmbedding = await  createEmbedding(question)
+
+  const relevantChunks = findRelevantChunks(
+    questionEmbedding,
+    savedVectors,
+    3
+  );
+
+  console.log("====== RETRIEVAL TEST ======");
+
+  relevantChunks.forEach((chunk) => {
+    console.log(`Chunk ${chunk.id}`);
+    console.log("Similarity:", chunk.similarity.toFixed(4));
+    console.log(chunk.text.slice(0,100));
+  });
+
+  console.log("============================");
+  
+
+  // console.log("Saved Vector Database");
+  // console.log(filePath);
   
   
 
@@ -61,10 +95,13 @@ const chunks = createChunks(extractedText);
   console.log(vectors[0].embedding.slice(0,10));
 
   return NextResponse.json({
-    message: "Embeddings created successfully!",
-    totalChunks: chunks.length,
-    totalEmbeddings: vectors.length,
-    sampleEmbeddingLength: vectors[0].embedding.length,
+    message: "Retrieval test successful!",
+    question,
+    retrievedChunks: relevantChunks.map((chunk) => ({
+      id: chunk.id,
+      similarity: Number(chunk.similarity.toFixed(4)),
+      preview: chunk.text.slice(0,120),
+    })),
   });
 
   } catch (error) {
