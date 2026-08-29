@@ -116,7 +116,8 @@ export default function ChatPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Chat request failed.");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || errData.message || "Chat request failed.");
       }
 
       const reader = response.body.getReader();
@@ -137,14 +138,31 @@ export default function ChatPage() {
 
         if (done) break;
 
-        aiAnswer += decoder.decode(value);
+        aiAnswer += decoder.decode(value, { stream: true });
 
         setMessages((prev) => {
           const updated = [...prev];
-          updated[updated.length - 1].text = aiAnswer;
+          if (updated.length > 0) {
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              text: aiAnswer,
+            };
+          }
           return updated;
         });
       }
+
+      aiAnswer += decoder.decode();
+      setMessages((prev) => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            text: aiAnswer,
+          };
+        }
+        return updated;
+      });
     } catch (error) {
       console.error(error);
 
@@ -152,7 +170,7 @@ export default function ChatPage() {
         ...prev,
         {
           role: "assistant",
-          text: "❌ Something went wrong while generating answer.",
+          text: `❌ ${error.message || "Something went wrong while generating answer."}`,
         },
       ]);
     }
@@ -232,7 +250,8 @@ export default function ChatPage() {
             💬 Chat With Your Notes
           </h2>
 
-          <div className="h-112.5 overflow-y-auto bg-gray-50 rounded-xl border p-4 space-y-4">
+          <div className="h-[450px] overflow-y-auto bg-gray-50 rounded-xl border p-4 space-y-4">
+
 
             {messages.length === 0 && (
               <div className="text-center text-gray-400 mt-36">

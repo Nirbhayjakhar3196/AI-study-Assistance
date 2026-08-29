@@ -39,10 +39,8 @@ export default function UploadPage() {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || data.message);
+      throw new Error(data.error || data.message || "Upload failed.");
     }
-
-    alert(data.message);
 
     alert(
       `${data.message}\n\nTotal Chunks Created: ${data.totalChunks}`
@@ -56,11 +54,12 @@ export default function UploadPage() {
 
   } catch (error) {
     console.error("Frontend Error:", error);
-    alert(error.message);
+    alert(error.message || "Upload failed.");
   } finally {
     setUploading(false);
   }
 }
+
 
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center p-6">

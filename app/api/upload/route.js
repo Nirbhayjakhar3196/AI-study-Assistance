@@ -3,9 +3,7 @@ import { NextResponse } from "next/server";
 import { extractPdfText } from "../../../lib/pdfParser";
 import { chunkText } from "../../../lib/chunkText";
 import { createEmbedding } from "../../../lib/embeddings";
-
-import fs from "fs/promises";
-import path from "path";
+import { saveEmbeddings } from "../../../lib/vectorStore";
 
 export async function POST(request) {
   try {
@@ -31,6 +29,16 @@ export async function POST(request) {
     console.log(parsedText.slice(0, 300));
     console.log("=================================");
 
+    if (!parsedText || !parsedText.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Could not extract text from the PDF. It might be empty or scanned images.",
+        },
+        { status: 400 }
+      );
+    }
+
     // STEP 2 — Chunk Text
     const chunks = chunkText(parsedText);
 
@@ -51,20 +59,14 @@ export async function POST(request) {
       });
     }
 
-    // STEP 4 — Save embeddings.json
-    const dataFolder = path.join(process.cwd(), "data");
-
-    await fs.mkdir(dataFolder, { recursive: true });
-
-    await fs.writeFile(
-      path.join(dataFolder, "embeddings.json"),
-      JSON.stringify(vectors, null, 2)
-    );
+    // STEP 4 — Save embeddings
+    await saveEmbeddings(vectors);
 
     return NextResponse.json({
       success: true,
       message: `${pdf.name} uploaded successfully!`,
       totalChunks: vectors.length,
+      firstChunk: chunks.length > 0 ? chunks[0] : "",
     });
   } catch (error) {
     console.error("UPLOAD ERROR:", error);
@@ -72,11 +74,11 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        message: "Upload failed.",
+        message: error.message || "Upload failed.",
       },
       {
         status: 500,
       }
     );
   }
-}
+}
