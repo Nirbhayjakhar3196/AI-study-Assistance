@@ -44,8 +44,15 @@ export default function UploadPage() {
 
     alert(data.message);
 
-    console.log("Characters:", data.characters);
-    console.log("Preview:", data.preview);
+    alert(
+      `${data.message}\n\nTotal Chunks Created: ${data.totalChunks}`
+    );
+
+    console.log("========== CHUNK INFO ==========");
+    console.log("Total Chunks:", data.totalChunks);
+    console.log("First Chunk:");
+    console.log(data.firstChunk);
+    console.log("================================");
 
   } catch (error) {
     console.error("Frontend Error:", error);
