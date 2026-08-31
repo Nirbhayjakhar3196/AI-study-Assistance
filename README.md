@@ -147,7 +147,7 @@ http://localhost:3000
 
 ---
 
-## 📚 Concepts Implemented
+##  Concepts Implemented
 
 ### React
 
