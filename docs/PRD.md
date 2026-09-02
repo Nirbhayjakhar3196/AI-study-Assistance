@@ -87,7 +87,7 @@ ai-study-assistant/
 
 Main client-side component responsible for:
 
-* Managing chat state.
+* Managing chat.
 * Sending prompts.
 * Reading streaming responses.
 * Updating UI.
